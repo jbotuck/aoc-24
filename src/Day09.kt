@@ -1,55 +1,67 @@
 fun main() {
-    //val compactDiskMap = "2333133121414131402"
-    val compactDiskMap = readInput("Day09").first()
-    val (fileList, fileMap, freeSpace) = run {
-        val (files, freeSpace) = sequence {
-            var id = 0
-            var fileMode = true
-            var index = 0
+    //val input = "2333133121414131402"
+    val input = readInput("Day09").first()
+    val (files, freeSpace) = sequence {
+        var id = 0
+        var fileMode = true
+        var index = 0
 
-            @Suppress("NAME_SHADOWING")
-            val compactDiskMap = ArrayDeque(compactDiskMap.map { it.digitToInt() })
-            while (compactDiskMap.isNotEmpty()) {
-                val blockSize = compactDiskMap.removeFirst()
-                if (blockSize != 0)
-                    yield(Pair(if (fileMode) id else -1, index until index + blockSize))
-                if (fileMode) id++
-                fileMode = !fileMode
-                index += blockSize
-            }
-        }.partition { it.first >= 0 }
-        val fileMap = files.groupBy({ it.first }, { it.second }).toMutableMap()
-        val queue = ArrayDeque(freeSpace.map { it.second })
-        Triple(files.map { it.first }, fileMap, queue)
-    }
-
-    for (file in fileList.reversed()) {
-        if (freeSpace.isEmpty()) break
-        var fileBlock = fileMap[file]!!.single()
-        val newFileBlocks = mutableListOf<IntRange>()
-        while (!fileBlock.isEmpty()) {
-            val freeBlock = freeSpace.removeFirstOrNull()
-            if (freeBlock == null || freeBlock.first > fileBlock.last) {
-                freeSpace.clear()
-                newFileBlocks.add(fileBlock)
-                break
-            }
-            val fileBlockSize = fileBlock.size()
-            newFileBlocks.add(freeBlock.takeFirst(fileBlockSize))
-            freeBlock.dropFirst(fileBlockSize).takeUnless { it.isEmpty() }?.let { freeSpace.addFirst(it) }
-            fileBlock = fileBlock.dropLast(freeBlock.size())
+        val compactDiskMap = ArrayDeque(input.map { it.digitToInt() })
+        while (compactDiskMap.isNotEmpty()) {
+            val blockSize = compactDiskMap.removeFirst()
+            if (blockSize != 0)
+                yield(Triple(if (fileMode) id else -1, index, blockSize))
+            if (fileMode) id++
+            fileMode = !fileMode
+            index += blockSize
         }
-        fileMap[file] = newFileBlocks
+    }.partition { it.first >= 0 }
+    //part1
+    run {
+        val fileMap = files.groupBy({ it.first }, { it.second to it.third }).toMutableMap()
+        val queue = ArrayDeque(freeSpace.map { it.second to it.third })
+
+        for (file in files.map { it.first }.reversed()) {
+            if (queue.isEmpty()) break
+            var fileBlock = fileMap[file]!!.single()
+            val newFileBlocks = mutableListOf<Pair<Int, Int>>()
+            while (fileBlock.second > 0) {
+                val freeBlock = queue.removeFirstOrNull()
+                if (freeBlock == null || freeBlock.first > fileBlock.first) {
+                    queue.clear()
+                    newFileBlocks.add(fileBlock)
+                    break
+                }
+                newFileBlocks.add(freeBlock.first to freeBlock.second.coerceAtMost(fileBlock.second))
+                if (freeBlock.second > fileBlock.second)
+                    queue.addFirst(freeBlock.first + fileBlock.second to freeBlock.second - fileBlock.second)
+                fileBlock = fileBlock.first to fileBlock.second - freeBlock.second
+            }
+            fileMap[file] = newFileBlocks
+        }
+
+        fileMap.map { (id, blocks) ->
+            id * blocks.sumOf { (start, size) -> start.toLong().until(start + size).sum() }
+        }.sum().also { println(it) }
     }
-    println(fileMap)
-    fileMap.map { (id, blocks) ->
-        blocks.sumOf { block -> block.sumOf { it * id.toLong() } }
+    //part 2
+    val fileMap: MutableMap<Int, Pair<Int, Int>> =
+        files.associateBy({ it.first }, { it.second to it.third }).toMutableMap()
+    val freeSpaceMap: MutableList<Pair<Int, Int>> = freeSpace.map { it.second to it.third }.toMutableList()
+    for (file in files.map { it.first }.reversed()) {
+        val fileBlock = fileMap[file]!!
+        freeSpaceMap.indexOfFirst { it.first > fileBlock.first }
+            .takeUnless { it == -1 }
+            ?.let { freeSpaceMap.subList(it, freeSpaceMap.size).clear() }
+        val freeIndex = freeSpaceMap.indexOfFirst { it.second >= fileBlock.second }
+            .takeUnless { it == -1 } ?: continue
+        val freeBlock = freeSpaceMap[freeIndex]
+        fileMap[file] = freeBlock.first to fileBlock.second
+        if (freeBlock.second == fileBlock.second) freeSpaceMap.removeAt(freeIndex)
+        else freeSpaceMap[freeIndex] = freeBlock.first + fileBlock.second to freeBlock.second - fileBlock.second
+    }
+
+    fileMap.map { (id, block) ->
+        id * block.let { (start, size) -> start.toLong().until(start + size).sum() }
     }.sum().also { println(it) }
-
 }
-
-private fun IntRange.size() = last.inc().minus(first).coerceAtLeast(0)
-private fun IntRange.takeFirst(n: Int): IntRange = start until start.plus(n).coerceAtMost(endInclusive.inc())
-private fun IntRange.dropFirst(n: Int): IntRange = start.plus(n)..endInclusive
-private fun IntRange.dropLast(n: Int): IntRange = start..endInclusive.minus(n)
-
