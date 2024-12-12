@@ -11,7 +11,6 @@ fun readInput(name: String) = Path("src/$name.txt").readText().trim().lines()
 fun lineStream(name: String) = Files.newBufferedReader(Path("src/$name.txt")).lines()
 fun readText(name: String) = Path("src/$name.txt").readText()
 
-
 /**
  * Converts string to md5 hash.
  */
