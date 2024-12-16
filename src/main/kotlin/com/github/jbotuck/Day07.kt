@@ -1,3 +1,6 @@
+package com.github.jbotuck
+
+import lineStream
 import kotlin.streams.asSequence
 
 fun main() {

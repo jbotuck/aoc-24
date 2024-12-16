@@ -1,3 +1,7 @@
+package com.github.jbotuck
+
+import readText
+
 fun main() {
     //Read
     val text = readText("Day03")

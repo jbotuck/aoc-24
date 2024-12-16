@@ -1,3 +1,7 @@
+package com.github.jbotuck
+
+import lineStream
+
 fun main() {
     //Read
     val (rules, updates) = lineStream("Day05").use { stream ->

@@ -1,3 +1,7 @@
+package com.github.jbotuck
+
+import readInput
+
 fun main() {
     val grid = readInput("Day08")
     fun antiNodes1(a: Pair<Int, Int>, b: Pair<Int, Int>): List<Pair<Int, Int>> {

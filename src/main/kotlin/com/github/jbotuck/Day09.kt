@@ -1,3 +1,7 @@
+package com.github.jbotuck
+
+import readInput
+
 fun main() {
     //val input = "2333133121414131402"
     val input = readInput("Day09").first()

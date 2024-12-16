@@ -1,3 +1,7 @@
+package com.github.jbotuck
+
+import readInput
+
 fun main() {
     val grid = readInput("Day10").map { line -> line.map { char -> char.digitToInt() } }
     fun indicesOfZeros() = grid.indices.flatMap { y ->

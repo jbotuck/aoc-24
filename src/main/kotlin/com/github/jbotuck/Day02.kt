@@ -1,3 +1,6 @@
+package com.github.jbotuck
+
+import lineStream
 import kotlin.math.abs
 import kotlin.streams.asSequence
 import kotlin.time.measureTime

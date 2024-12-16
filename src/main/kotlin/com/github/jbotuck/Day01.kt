@@ -1,3 +1,7 @@
+package com.github.jbotuck
+
+import println
+import readInput
 import kotlin.math.abs
 import kotlin.time.measureTime
 

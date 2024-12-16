@@ -1,3 +1,7 @@
+package com.github.jbotuck
+
+import readInput
+
 fun main() {
     val stones = readInput("Day11").first().split(" ").map { it.toLong() }
 

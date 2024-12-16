@@ -1,6 +1,5 @@
-@file:OptIn(ExperimentalCoroutinesApi::class)
 
-package parallel
+package com.github.jbotuck.parallel
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel

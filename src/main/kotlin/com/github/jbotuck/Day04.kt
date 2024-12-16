@@ -1,3 +1,7 @@
+package com.github.jbotuck
+
+import readInput
+
 fun main() {
     //Read
     val grid = readInput("Day04")
