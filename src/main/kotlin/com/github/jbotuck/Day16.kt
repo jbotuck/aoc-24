@@ -5,7 +5,7 @@ import java.util.PriorityQueue
 
 fun main() {
     val grid = readInput("Day16")
-    val visited = mutableSetOf<Pair<Int, Int>>()
+    val visited = mutableMapOf<Triple<Int, Int, DirectionDay16>, Int>()
     val toVisit = PriorityQueue<Position>(Comparator.comparingInt { it.score })
         .apply {
             val (y, x) = grid
@@ -16,31 +16,55 @@ fun main() {
                         .takeUnless { it == -1 }
                         ?.let { y to it }
                 }
-            add(Position(y, x, DirectionDay16.RIGHT))
+            add(Position(y, x, DirectionDay16.RIGHT, 0, emptyList()))
         }
+    var score: Int? = null
+    val goodSeats = mutableSetOf<Pair<Int, Int>>()
     while (toVisit.isNotEmpty()) {
         val visiting = toVisit.remove()
-        if (visiting.run { y to x } in visited) continue
-        visited.add(visiting.run { y to x })
+        if (visited[visiting.run { Triple(y, x, orientation) }]?.let { it < visiting.score } == true) continue
+        visited[visiting.run { Triple(y, x, orientation) }] = visiting.score
         if (visiting.run { grid[y][x] } == 'E') {
-            println(visiting.score)
-            break
+            if (score == null) {
+                score = visiting.score
+                goodSeats.add(visiting.y to visiting.x)
+                println(visiting.score)
+            }
+            if (visiting.score > score) break
+            goodSeats.addAll(visiting.path)
         }
-        toVisit.addAll(visiting.neighbors(grid).filter { it.run { y to x } !in visited })
+        toVisit.addAll(
+            visiting.neighbors(grid)
+                .filterNot { neighbor ->
+                    visited[neighbor.run { Triple(y, x, orientation)}]?.let { it < neighbor.score } == true
+                }
+        )
     }
+    println(goodSeats.size)
 }
 
-private class Position(val y: Int, val x: Int, val orientation: DirectionDay16, val score: Int = 0) {
+
+private class Position(
+    val y: Int,
+    val x: Int,
+    val orientation: DirectionDay16,
+    val score: Int = 0,
+    val path: List<Pair<Int, Int>>
+) {
     fun neighbors(grid: List<String>): Collection<Position> {
         return DirectionDay16.entries.map { Triple(y + it.y, x + it.x, it) }
             .filter { (y, x, _) -> grid.getOrNull(y)?.getOrNull(x).let { it !in setOf(null, '#') } }
-            .map { (y, x, newOrientation) ->
+            .map { (newY, newX, newOrientation) ->
                 Position(
-                    y, x, newOrientation, score.inc() + when {
+                    y = newY,
+                    x = newX,
+                    orientation = newOrientation,
+                    score = score.inc() + when {
                         newOrientation == orientation -> 0
                         newOrientation.x == orientation.x || newOrientation.y == orientation.y -> 2000
                         else -> 1000
-                    }
+                    },
+                    path = path + Pair(y, x)
                 )
             }
     }
